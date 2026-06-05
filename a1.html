@@ -552,29 +552,12 @@
   <script>
     /*
       PAROLALAR
-      Yeni parola eklemek için aşağıdaki listeye virgül koyarak ekle.
-      Örnek:
-      "yenisifre",
+      Şifreler bu sayfanın içinden değil, aşağıdaki ortak şifre dosyasından alınır:
+      https://onurqlp.github.io/ayda-pass/passwords.json
     */
-    const VALID_PASSWORDS = [
-      "ayda1",
-      "012606",
-      "a2kasim25171125",
-      "241225",
-      "230126",
-      "030626",
-      "300126",
-      "290126",
-      "010326",
-      "240226",
-      "160326",
-      "170326",
-      "200426",
-      "180326",
-      "250426",
-      "080426",
-      "010226"
-    ];
+    const PASSWORDS_URL = "https://onurqlp.github.io/ayda-pass/passwords.json";
+    let VALID_PASSWORDS = [];
+    let passwordsLoaded = false;
 
     const passwordInput = document.getElementById("passwordInput");
     const loginScreen = document.getElementById("loginScreen");
@@ -585,16 +568,55 @@
       return String(value || "").trim().toLowerCase();
     }
 
-    function checkPassword() {
-      const enteredPassword = normalizePassword(passwordInput.value);
-      const validPasswords = VALID_PASSWORDS.map(normalizePassword);
+    function isGroupValid(group) {
+      if (group.active === false) return false;
+      if (!group.expires) return true;
 
-      if (validPasswords.includes(enteredPassword)) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const expireDate = new Date(group.expires + "T23:59:59");
+      return expireDate >= today;
+    }
+
+    fetch(PASSWORDS_URL)
+      .then(function(response) {
+        if (!response.ok) {
+          throw new Error("Şifre dosyası alınamadı.");
+        }
+        return response.json();
+      })
+      .then(function(data) {
+        VALID_PASSWORDS = data
+          .filter(isGroupValid)
+          .flatMap(function(group) {
+            return group.codes || [];
+          })
+          .map(normalizePassword);
+
+        passwordsLoaded = true;
+      })
+      .catch(function(error) {
+        console.error("Şifreler yüklenemedi:", error);
+        passwordsLoaded = true;
+      });
+
+    function checkPassword() {
+      if (!passwordsLoaded) {
+        errorMsg.style.display = "block";
+        errorMsg.textContent = "Şifreler yükleniyor. Lütfen birkaç saniye sonra tekrar deneyiniz.";
+        return;
+      }
+
+      const enteredPassword = normalizePassword(passwordInput.value);
+
+      if (VALID_PASSWORDS.includes(enteredPassword)) {
         localStorage.setItem("aydaPanelAccess", "true");
         loginScreen.style.display = "none";
         app.style.display = "block";
         errorMsg.style.display = "none";
       } else {
+        errorMsg.textContent = "Parola hatalı. Lütfen tekrar deneyiniz.";
         errorMsg.style.display = "block";
         passwordInput.focus();
       }
