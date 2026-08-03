@@ -30,7 +30,7 @@
       min-height: 100vh;
     }
 
-    #loginScreen {
+    #aydaLoginBox {
       min-height: 100vh;
       display: grid;
       place-items: center;
@@ -112,7 +112,11 @@
       font-weight: 700;
     }
 
-    #app { display: none; }
+    #aydaLoginMessage:not(:empty) {
+      display: block;
+    }
+
+    #aydaProtectedContent { display: none; }
 
     .page {
       max-width: 980px;
@@ -389,22 +393,22 @@
 </head>
 <body>
 
-  <section id="loginScreen">
+  <section id="aydaLoginBox">
     <div class="login-card">
       <div class="login-logo">AY</div>
       <h1>AYDA A2 Öğrenci Paneli</h1>
       <p>Devam etmek için size verilen sınıf kodunu veya giriş parolasını yazınız.</p>
 
       <div class="password-row">
-        <input id="passwordInput" type="password" placeholder="Giriş parolası" autocomplete="off" />
-        <button class="login-btn" onclick="checkPassword()">Giriş</button>
+        <input id="aydaPasswordInput" type="password" placeholder="Giriş parolası" autocomplete="off" />
+        <button class="login-btn" onclick="aydaCheckPassword()">Giriş</button>
       </div>
 
-      <div id="errorMsg" class="error">Parola hatalı. Lütfen tekrar deneyiniz.</div>
+      <div id="aydaLoginMessage" class="error" aria-live="polite"></div>
     </div>
   </section>
 
-  <main id="app">
+  <main id="aydaProtectedContent">
     <div class="page">
       <section class="hero">
         <div class="badge">AYDA · A2 Öğrenci Giriş Paneli</div>
@@ -509,69 +513,6 @@
     </div>
   </main>
 
-  <script>
-    /*
-      PAROLALAR
-      Yeni parola eklemek için aşağıdaki listeye virgül koyarak ekle.
-      Örnek:
-      "yenisifre",
-    */
-    const VALID_PASSWORDS = [
-      "ayda1",
-      "012606",
-      "a2kasim25171125",
-      "241225",
-      "230126",
-      "030626",
-      "300126",
-      "290126",
-      "010326",
-      "240226",
-      "160326",
-      "170326",
-      "200426",
-      "180326",
-      "250426",
-      "080426",
-      "061026",
-      "010226"
-      "190626"
-    ];
-
-    const passwordInput = document.getElementById("passwordInput");
-    const loginScreen = document.getElementById("loginScreen");
-    const app = document.getElementById("app");
-    const errorMsg = document.getElementById("errorMsg");
-
-    function normalizePassword(value) {
-      return String(value || "").trim().toLowerCase();
-    }
-
-    function checkPassword() {
-      const enteredPassword = normalizePassword(passwordInput.value);
-      const validPasswords = VALID_PASSWORDS.map(normalizePassword);
-
-      if (validPasswords.includes(enteredPassword)) {
-        localStorage.setItem("aydaA2PanelAccess", "true");
-        loginScreen.style.display = "none";
-        app.style.display = "block";
-        errorMsg.style.display = "none";
-      } else {
-        errorMsg.style.display = "block";
-        passwordInput.focus();
-      }
-    }
-
-    passwordInput.addEventListener("keydown", function(event) {
-      if (event.key === "Enter") {
-        checkPassword();
-      }
-    });
-
-    if (localStorage.getItem("aydaA2PanelAccess") === "true") {
-      loginScreen.style.display = "none";
-      app.style.display = "block";
-    }
-  </script>
+  <script src="https://onurqlp.github.io/ayda-pass/access-control.js"></script>
 </body>
 </html>
